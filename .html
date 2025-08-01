@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Book Website</title>
+  <style>
+    :root {
+      --bg: #f0f0f0;
+      --text: #222;
+      --box: white;
+      --accent: #4caf50;
+    }
+    body.dark {
+      --bg: #121212;
+      --text: #eee;
+      --box: #1e1e1e;
+    }
+    body {
+      margin: 0;
+      font-family: Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+    header {
+      background: var(--accent);
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .title {
+      font-size: 22px;
+      font-weight: bold;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .toggle-dark {
+      cursor: pointer;
+      background: #222;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 4px;
+    }
+    .content {
+      max-width: 800px;
+      margin: 20px auto;
+      background: var(--box);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .chapter-title {
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .chapter-text {
+      text-align: justify;
+      line-height: 1.6;
+    }
+    .nav-buttons {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+    }
+    button {
+      padding: 8px 16px;
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #888;
+      cursor: not-allowed;
+    }
+    footer {
+      background: var(--accent);
+      color: white;
+      text-align: center;
+      padding: 12px;
+      margin-top: 40px;
+    }
+    .toc, .cover {
+      text-align: center;
+    }
+    .toc button {
+      display: block;
+      margin: 10px auto;
+      width: 80%;
+    }
+    .search-bar {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .search-bar input {
+      padding: 7px;
+      width: 60%;
+      max-width: 400px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="title">📖 My Story Book</div>
+    <div class="controls">
+      <div class="toggle-dark" onclick="toggleDark()">🌙</div>
+      <audio id="bgMusic" controls loop style="height: 25px;">
+        <source src="https://cdn.pixabay.com/download/audio/2022/12/27/audio_e1ac3d5b30.mp3?filename=soft-piano-ambient-126176.mp3" type="audio/mp3">
+      </audio>
+    </div>
+  </header>
+
+  <div class="search-bar">
+    <input type="text" placeholder="Search chapter..." oninput="searchChapter(this.value)">
+  </div>
+
+  <div class="content" id="bookContent">
+    <!-- Dynamic content will load here -->
+  </div>
+
+  <footer>
+    © 2025 Kabir Mahato | Book Reading Website
+  </footer>
+
+  <script>
+    const chapters = [
+      {
+        title: "Cover",
+        text: "✨ Welcome to 'The Forest Mystery' ✨\n\nWritten by Kabir Mahato\n\nClick 'Next' to begin your journey.",
+        type: "cover"
+      },
+      {
+        title: "Table of Contents",
+        text: "",
+        type: "toc"
+      },
+      {
+        title: "Chapter 1: The Beginning",
+        text: "It was a quiet morning in the village of Sundarpur. The sun was rising slowly, casting golden light over the hills..."
+      },
+      {
+        title: "Chapter 2: Into the Woods",
+        text: "The forest was darker than Aryan imagined. Tall trees blocked the light, and strange whispers echoed around..."
+      },
+      {
+        title: "Chapter 3: The Hidden Temple",
+        text: "At the heart of the jungle, Aryan found an old temple with moss-covered walls and mysterious carvings..."
+      },
+      {
+        title: "Chapter 4: The Final Test",
+        text: "A storm raged as Aryan faced the final trial — one that would change the fate of the village forever..."
+      },
+      {
+        title: "The End",
+        text: "Thank you for reading. Hope you enjoyed the story!"
+      }
+    ];
+
+    let current = 0;
+
+    function render() {
+      const container = document.getElementById("bookContent");
+      const chapter = chapters[current];
+
+      if (chapter.type === "cover") {
+        container.innerHTML = `
+          <div class="cover">
+            <h2 class="chapter-title">${chapter.title}</h2>
+            <p class="chapter-text">${chapter.text.replace(/\n/g, "<br>")}</p>
+          </div>
+          <div class="nav-buttons">
+            <button disabled>⬅ Prev</button>
+            <button onclick="next()">Next ➡</button>
+          </div>
+        `;
+      } else if (chapter.type === "toc") {
+        container.innerHTML = `
+          <div class="toc">
+            <h2 class="chapter-title">📚 Table of Contents</h2>
+            ${chapters.slice(2).map((ch, i) =>
+              `<button onclick="goTo(${i + 2})">${ch.title}</button>`
+            ).join("")}
+          </div>
+          <div class="nav-buttons">
+            <button onclick="prev()">⬅ Prev</button>
+            <button onclick="next()">Next ➡</button>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <h2 class="chapter-title">${chapter.title}</h2>
+          <div class="chapter-text">${chapter.text}</div>
+          <div class="nav-buttons">
+            <button onclick="prev()" ${current === 0 ? "disabled" : ""}>⬅ Prev</button>
+            <button onclick="next()" ${current === chapters.length - 1 ? "disabled" : ""}>Next ➡</button>
+          </div>
+        `;
+      }
+    }
+
+    function next() {
+      if (current < chapters.length - 1) {
+        current++;
+        render();
+      }
+    }
+
+    function prev() {
+      if (current > 0) {
+        current--;
+        render();
+      }
+    }
+
+    function goTo(index) {
+      current = index;
+      render();
+    }
+
+    function toggleDark() {
+      document.body.classList.toggle("dark");
+    }
+
+    function searchChapter(query) {
+      const found = chapters.findIndex(c => c.title.toLowerCase().includes(query.toLowerCase()));
+      if (found !== -1) {
+        current = found;
+        render();
+      }
+    }
+
+    render();
+  </script>
+
+</body>
+</html>
+
+
+
+
+
+
+
